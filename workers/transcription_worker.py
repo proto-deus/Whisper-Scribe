@@ -1,3 +1,5 @@
+import gc
+import shutil
 import tempfile
 from pathlib import Path
 from PyQt6.QtCore import QThread, pyqtSignal
@@ -23,7 +25,7 @@ class TranscriptionWorker(QThread):
     finished_all = pyqtSignal()
     log_message = pyqtSignal(str)
 
-    def __init__(self, files: list[Path], settings: dict, model_manager):
+    def __init__(self, files: list[tuple[int, Path]], settings: dict, model_manager):
         super().__init__()
         self.files = files
         self.settings = settings
@@ -48,30 +50,30 @@ class TranscriptionWorker(QThread):
         stopped = False
 
         try:
-            for idx, file_path in enumerate(self.files):
+            for worker_idx, (table_idx, file_path) in enumerate(self.files):
                 if self._stop_requested:
                     stopped = True
-                    for rem_idx in range(idx, total):
-                        self.file_completed.emit(rem_idx, "Skipped")
+                    for rem_idx in range(worker_idx, total):
+                        self.file_completed.emit(self.files[rem_idx][0], "Skipped")
                     self.overall_progress.emit(1.0)
                     break
 
-                self.file_started.emit(idx)
+                self.file_started.emit(table_idx)
                 try:
-                    self._process_file(idx, file_path, transcriber)
-                    self.file_completed.emit(idx, "Done")
+                    self._process_file(table_idx, file_path, transcriber)
+                    self.file_completed.emit(table_idx, "Done")
                 except _StopRequested:
-                    self.file_error.emit(idx, "Stopped by user")
+                    self.file_error.emit(table_idx, "Stopped by user")
                     stopped = True
-                    for rem_idx in range(idx + 1, total):
-                        self.file_completed.emit(rem_idx, "Skipped")
+                    for rem_idx in range(worker_idx + 1, total):
+                        self.file_completed.emit(self.files[rem_idx][0], "Skipped")
                     self.overall_progress.emit(1.0)
                     break
                 except Exception as e:
-                    self.file_error.emit(idx, str(e))
+                    self.file_error.emit(table_idx, str(e))
                     self.log_message.emit(f"  Error: {e}")
 
-                self.overall_progress.emit((idx + 1) / total)
+                self.overall_progress.emit((worker_idx + 1) / total)
         finally:
             self._release_active_model()
             if self.settings.get("unload_after_batch", True) and not self.model_manager.busy():
@@ -97,6 +99,8 @@ class TranscriptionWorker(QThread):
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             audio_path = file_path
+            vocal_path = None
+            music_path = None
 
             if is_video_file(file_path):
                 self._check_stop()
@@ -107,8 +111,9 @@ class TranscriptionWorker(QThread):
             if self.settings.get("background_music_removal"):
                 self._check_stop()
                 self.log_message.emit("  Removing background music...")
-                vocal_path = Path(tmp_dir) / f"{file_path.stem}_vocals.wav"
-                audio_path = remove_background_music(audio_path, vocal_path)
+                tmp_vocal = Path(tmp_dir) / f"{file_path.stem}_vocals.wav"
+                vocal_path, music_path = remove_background_music(audio_path, tmp_vocal)
+                audio_path = vocal_path
 
             if self.settings.get("voice_detection_filter"):
                 self._check_stop()
@@ -118,6 +123,7 @@ class TranscriptionWorker(QThread):
                     if segments_vad:
                         filtered = Path(tmp_dir) / f"{file_path.stem}_filtered.wav"
                         audio_path = apply_vad_segments(audio_path, segments_vad, filtered)
+                    del segments_vad
                 except Exception as e:
                     self.log_message.emit(f"  Voice detection filter failed: {e}")
                     self.log_message.emit("  Continuing without VAD filtering...")
@@ -141,6 +147,7 @@ class TranscriptionWorker(QThread):
                 try:
                     diar_segments = run_diarization(audio_path, self.settings["hf_token"])
                     segments = self._merge_diarization(segments, diar_segments)
+                    del diar_segments
                 except _StopRequested:
                     raise
                 except Exception as e:
@@ -159,8 +166,19 @@ class TranscriptionWorker(QThread):
                                self.settings.get("include_timestamps", True))
             self._completed_outputs[idx] = output_path
             self.log_message.emit(f"  Saved: {output_path}")
+            del segments
+
+            if self.settings.get("save_background_removal_tracks") and vocal_path is not None:
+                dest_vocal = file_path.parent / f"{file_path.stem}_vocals.wav"
+                shutil.copy2(str(vocal_path), str(dest_vocal))
+                self.log_message.emit(f"  Saved vocals track: {dest_vocal}")
+                if music_path is not None:
+                    dest_music = file_path.parent / f"{file_path.stem}_music.wav"
+                    shutil.copy2(str(music_path), str(dest_music))
+                    self.log_message.emit(f"  Saved music track: {dest_music}")
 
         self.progress.emit(idx, 1.0)
+        gc.collect()
 
     def _transcribe_with_release(self, transcriber, audio_path, file_progress):
         series = self.settings["model_series"]

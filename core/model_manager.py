@@ -136,17 +136,20 @@ class ModelManager(QObject):
     @classmethod
     def _ensure_model_local(cls, model_name: str) -> Path:
         from huggingface_hub import snapshot_download
+        from tqdm.auto import tqdm as _tqdm
+
+        class _NoTqdm(_tqdm):
+            def __init__(self, *a, **kw):
+                super().__init__(*a, **kw, disable=True)
+
         repo_id = cls._resolve_faster_whisper_repo_id(model_name)
         local_dir = cls._local_model_dir(repo_id)
         local_dir.mkdir(parents=True, exist_ok=True)
-        try:
-            snapshot_download(
-                repo_id=repo_id,
-                local_dir=str(local_dir),
-                local_dir_use_symlinks=False,
-            )
-        except TypeError:
-            snapshot_download(repo_id=repo_id, local_dir=str(local_dir))
+        snapshot_download(
+            repo_id=repo_id,
+            local_dir=str(local_dir),
+            tqdm_class=_NoTqdm,
+        )
         return local_dir
 
     def unload_all(self):

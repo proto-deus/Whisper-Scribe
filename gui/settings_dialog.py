@@ -255,6 +255,10 @@ class SettingsDialog(QDialog):
         self.demucs_cb.setChecked(self.settings.get("background_music_removal", False))
         layout.addWidget(self.demucs_cb)
 
+        self.save_tracks_cb = QCheckBox("Save separated audio tracks (vocals & music) next to source files")
+        self.save_tracks_cb.setChecked(self.settings.get("save_background_removal_tracks", False))
+        layout.addWidget(self.save_tracks_cb)
+
         self.voice_filter_cb = QCheckBox("Voice detection filter (Silero VAD)")
         self.voice_filter_cb.setChecked(self.settings.get("voice_detection_filter", False))
         layout.addWidget(self.voice_filter_cb)
@@ -370,6 +374,7 @@ class SettingsDialog(QDialog):
 
         self.diarize_cb.setChecked(self.settings.get("extract_speakers", False))
         self.demucs_cb.setChecked(self.settings.get("background_music_removal", False))
+        self.save_tracks_cb.setChecked(self.settings.get("save_background_removal_tracks", False))
         self.voice_filter_cb.setChecked(self.settings.get("voice_detection_filter", False))
 
         device = self.settings.get("device", "auto")
@@ -404,6 +409,7 @@ class SettingsDialog(QDialog):
         self.settings["include_timestamps"] = self.timestamps_cb.isChecked()
         self.settings["extract_speakers"] = self.diarize_cb.isChecked()
         self.settings["background_music_removal"] = self.demucs_cb.isChecked()
+        self.settings["save_background_removal_tracks"] = self.save_tracks_cb.isChecked()
         self.settings["voice_detection_filter"] = self.voice_filter_cb.isChecked()
         self.settings["initial_prompt"] = self.prompt_edit.toPlainText().strip()
         self.settings["device"] = self.device_combo.currentText()

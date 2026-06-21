@@ -95,6 +95,13 @@ class FileTable(QTableWidget):
                 selected.append(self._files[i])
         return selected
 
+    def get_selected_files_with_indices(self) -> list[tuple[int, Path]]:
+        selected = []
+        for i, cb in enumerate(self._checkboxes):
+            if cb.isChecked():
+                selected.append((i, self._files[i]))
+        return selected
+
     def get_all_files(self) -> list[Path]:
         return list(self._files)
 

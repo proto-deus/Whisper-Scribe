@@ -441,7 +441,7 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     def _start_processing(self):
-        files = self.file_table.get_selected_files()
+        files = self.file_table.get_selected_files_with_indices()
         if not files:
             self._log("No files selected for processing")
             return

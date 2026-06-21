@@ -116,6 +116,7 @@ DEFAULT_SETTINGS = {
     "vad_threshold": 0.5,
     "extract_speakers": False,
     "background_music_removal": False,
+    "save_background_removal_tracks": False,
     "voice_detection_filter": False,
     "device": "auto",
     "compute_type": "float16",
