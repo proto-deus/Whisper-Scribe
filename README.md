@@ -107,26 +107,3 @@ Key settings include:
 | Device | Auto | CUDA or CPU |
 | Compute type | float16 | Inference precision |
 
-## Project Structure
-
-```
-whisper-scribe/
-├── main.py                  # Application entry point
-├── config.py                # Constants, model definitions, defaults
-├── settings.py              # Persistent settings manager
-├── requirements.txt         # Python dependencies
-├── core/                    # Business logic
-│   ├── transcriber.py       # Transcription engine dispatcher
-│   ├── audio_processor.py   # Demucs, VAD, diarization, ffmpeg
-│   ├── model_manager.py     # Model loading and caching
-│   ├── file_utils.py        # File scanning and audio extraction
-│   ├── preflight.py         # Startup dependency checks
-│   └── secrets.py           # OS keyring integration
-├── gui/                     # PyQt6 interface
-│   ├── main_window.py       # Main application window
-│   ├── file_table.py        # File list with progress tracking
-│   ├── settings_dialog.py   # Settings configuration dialog
-│   └── model_manager_dialog.py  # Model management dialog
-└── workers/                 # Background threading
-    └── transcription_worker.py  # QThread-based transcription
-```
