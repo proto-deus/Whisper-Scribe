@@ -130,7 +130,3 @@ whisper-scribe/
 └── workers/                 # Background threading
     └── transcription_worker.py  # QThread-based transcription
 ```
-
-## License
-
-See [LICENSE](LICENSE) for details.
