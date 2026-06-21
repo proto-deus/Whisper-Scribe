@@ -101,7 +101,7 @@ Key settings include:
 | Model engine | Faster Whisper | Transcription backend |
 | Model | large-v3 | Whisper model variant |
 | Beam size | 5 | Number of beams for decoding |
-| VAD filter | Enabled | Silero VAD for faster-whisper |
+| VAD filter | Enabled | Silero VAD or faster-whisper built-in |
 | Speaker diarization | Disabled | Label speakers (requires HF token) |
 | Background music removal | Disabled | Isolate vocals with Demucs |
 | Device | Auto | CUDA or CPU |
