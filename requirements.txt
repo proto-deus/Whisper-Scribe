@@ -1,0 +1,27 @@
+# Core GUI
+PyQt6>=6.5.0
+
+# Transcription engines
+faster-whisper>=1.0.0
+openai-whisper>=20231117
+transformers>=4.35.0
+
+# Audio processing
+torch>=2.1.0
+torchaudio>=2.1.0
+soundfile>=0.12.0
+silero-vad>=6.0.0
+pyannote.audio>=3.1.0
+demucs>=4.0.0
+
+# Required by faster-whisper / pyannote (pkg_resources)
+setuptools<78
+
+# OS keyring for storing HF token securely
+keyring>=24.0.0
+
+# Memory monitoring
+psutil>=5.9.0
+
+# Packaging
+pyinstaller>=6.0.0
