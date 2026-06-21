@@ -2,7 +2,7 @@
 
 A desktop GUI application for batch audio/video transcription powered by OpenAI's Whisper speech-to-text models.
 
-![alt text]([http://url/to/img.png](https://raw.githubusercontent.com/proto-deus/Whisper-Scribe/refs/heads/main/gui/gui.jpg)
+![alt text](https://raw.githubusercontent.com/proto-deus/Whisper-Scribe/refs/heads/main/gui/gui.jpg)
 
 ## Features
 
